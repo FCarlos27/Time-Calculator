@@ -1,0 +1,113 @@
+def add_time(start, duration, day = None):
+    # Handle no duration time
+    if duration == '0:00':
+        return start
+        
+    # Dict for days of week
+    days_of_week = {
+        'Monday'    : 1,
+        'Tuesday'   : 2,
+        'Wednesday' : 3,
+        'Thursday'  : 4,
+        'Friday'    : 5,
+        'Saturday'  : 6,
+        'Sunday'    : 7}
+
+    
+    days_passed = 0
+    new_time = ''
+
+    # Get the current day of the week in the dict
+    if day:
+        current_day_num = days_of_week.get(day.lower().capitalize())
+
+    # Convert duration minutes str into int
+    dur_minutes = int(duration[duration.find(':')+1:])  
+    if dur_minutes >= 60:
+        return False
+
+    # Convert duration hours str into int 
+    dur_hours = int(duration[:duration.find(':')])
+
+    # Convert start minutes str into int
+    start_minutes = int(start[start.find(':')+1:start.find(' ')])
+
+    # Convert start hours str into int
+    start_hours = int(start[:start.find(':')])
+    
+    # Add duration's minutes and hours to start
+    start_minutes += dur_minutes
+    start_hours += dur_hours
+
+    # Check if AM or PM
+    meridiem = 'PM' if 'P' in start else 'AM'
+
+
+    # Convert the extra minutes into hours and adjust minutes
+    if start_minutes >= 60:
+        start_hours += start_minutes // 60
+        start_minutes = start_minutes % 60
+        if start_minutes < 10:
+            start_minutes_str = '0' + str(start_minutes)
+            start_minutes = start_minutes_str
+
+    # Times of 'meridiem time' changes
+    meridiem_change = 0
+ 
+    # Adjust the hours format and set meridiem changes
+    meridiem_change += start_hours // 12
+
+    if start_hours > 12:
+        start_hours -= 12 * meridiem_change
+        if start_hours == 0: 
+            start_hours = 12
+ 
+        
+
+    # Count the days passed and adjust the meridiem time
+    if meridiem == 'PM' and meridiem_change >= 1:
+        # If merdiem is odd -> PM->AM and day passes by for every odd
+        if meridiem_change % 2 != 0:
+            meridiem = 'AM'
+            days_passed += 1 + meridiem_change // 2
+            # If meridiem is even-> PM->PM and day passes by for every even
+        elif meridiem_change % 2 == 0:
+            meridiem = 'PM'
+            days_passed += meridiem_change // 2
+    # Analogous to PM 
+    elif meridiem == 'AM' and meridiem_change >= 1:
+        if meridiem_change % 2 != 0:
+            meridiem = 'PM'
+            days_passed += meridiem_change // 2
+        elif meridiem_change % 2 == 0:
+            meridiem = 'AM'
+            days_passed += meridiem_change // 2
+
+    # Updated day
+    if day:
+        current_day_num += days_passed
+        while current_day_num > 7:
+            current_day_num -= 7
+        # Search for the day that corresponds to the num of the week
+        new_day = next((day for day,num in days_of_week.items() if num == current_day_num))
+
+
+    # Return result
+    if day and days_passed > 1:
+        new_time = f'{start_hours}:{start_minutes} {meridiem}, {new_day} ({days_passed} days later)'
+    elif day and days_passed == 1:
+        new_time = f'{start_hours}:{start_minutes} {meridiem}, {new_day} (next day)'
+    elif day:
+        new_time = f'{start_hours}:{start_minutes} {meridiem}, {new_day}'
+    
+    if not day:
+        if days_passed > 1:
+            new_time = f'{start_hours}:{start_minutes} {meridiem} ({days_passed} days later)'
+        elif days_passed == 1:
+            new_time = f'{start_hours}:{start_minutes} {meridiem} (next day)'
+        else:
+            new_time = f'{start_hours}:{start_minutes} {meridiem}'
+            
+    return new_time
+
+add_time('3:30 PM', '2:12', 'Monday')
